@@ -1,29 +1,39 @@
 import React, { useEffect, useState } from 'react';
 import { Text, View, StyleSheet, Button } from 'react-native';
-import { supabase } from './supabase';
+import axios from 'axios';
 
 export default function App() {
-  const [message, setMessage] = useState('Testing connection...');
+  const [data, setData] = useState([]);
 
   useEffect(() => {
-    const testConnection = async () => {
-      const { error } = await supabase
-        .from('test_table')
-        .insert([{ test_column: 'Hello, Supabase!' }]);
-
-      if (error) {
-        setMessage(`Error: ${error.message}`);
-      } else {
-        setMessage('Data inserted successfully!');
-      }
-    };
-
-    testConnection();
+    fetchData();
   }, []);
+
+  const fetchData = async () => {
+    try {
+      const response = await axios.get('http://localhost:3000/api/tests');
+      setData(response.data);
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  const addTest = async () => {
+    try {
+      await axios.post('http://localhost:3000/api/tests', { test_column: 'Hello, Supabase!' });
+      fetchData();
+    } catch (error) {
+      console.error('Error adding data:', error);
+    }
+  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>{message}</Text>
+      <Text style={styles.title}>Contenu de la Table test_table :</Text>
+      {data.map((item) => (
+        <Text key={item._id}>{item.test_column}</Text>
+      ))}
+      <Button title="Ajouter une Entrée" onPress={addTest} />
     </View>
   );
 }
@@ -35,8 +45,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
   },
-  text: {
+  title: {
     fontSize: 24,
     fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  text: {
+    fontSize: 18,
   },
 });
