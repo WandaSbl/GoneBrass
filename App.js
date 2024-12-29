@@ -1,11 +1,29 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Text, View, StyleSheet, Button } from 'react-native';
+import { supabase } from './supabase';
 
 export default function App() {
+  const [message, setMessage] = useState('Testing connection...');
+
+  useEffect(() => {
+    const testConnection = async () => {
+      const { error } = await supabase
+        .from('test_table')
+        .insert([{ test_column: 'Hello, Supabase!' }]);
+
+      if (error) {
+        setMessage(`Error: ${error.message}`);
+      } else {
+        setMessage('Data inserted successfully!');
+      }
+    };
+
+    testConnection();
+  }, []);
+
   return (
     <View style={styles.container}>
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
+      <Text style={styles.text}>{message}</Text>
     </View>
   );
 }
@@ -13,8 +31,12 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  text: {
+    fontSize: 24,
+    fontWeight: 'bold',
   },
 });
